@@ -36,6 +36,11 @@
 
 <div>
 	<div class="row">
+		<h4>Should the intervals on the time line be days or months?</h4>
+		<?php print form::dropdown('interval_mode',$interval_mode, $form['interval_mode']); ?>
+	</div>
+	<br/>
+	<div class="row">
 		<h4>Which mode should be used to calculate the default time span of the time line?</h4>
 		<?php print form::dropdown('mode',$mode, $form['mode']); ?>
 	</div>

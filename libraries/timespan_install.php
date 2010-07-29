@@ -26,6 +26,7 @@ class Timespan_Install {
 		$this->db->query('CREATE TABLE IF NOT EXISTS `'.Kohana::config('database.default.table_prefix').'timespan` (
 				  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 				  `mode` int(10) unsigned NOT NULL,
+				  `interval_mode` int(10) unsigned NOT NULL,
 				  `days_back` int(10) unsigned,
 				  `start_date` datetime default NULL,
 				  `end_date` datetime default NULL,
@@ -39,6 +40,7 @@ class Timespan_Install {
 		{
 			$settings = ORM::factory('timespan');
 			$settings->id = 1;
+			$settings->interval_mode = 1;
 			$settings->mode = 1;
 			$settings->days_back = 60;
 			$settings->save();

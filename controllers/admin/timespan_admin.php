@@ -30,6 +30,7 @@ class Timespan_admin_Controller extends Admin_Controller
 		$form = array
 		(
 		        'mode' => "",
+			'interval_mode' => "",
 			'days_back' => "",
 			'start_date' => "",
 			'end_date' => "",
@@ -62,6 +63,7 @@ class Timespan_admin_Controller extends Admin_Controller
 					->where('id', 1)
 					->find();
 				$settings->mode = $post->mode;
+				$settings->interval_mode = $post->interval_mode;
 				$settings->days_back = $post->days_back;				
 				//start date stuff
 				$start_date=explode("/",$post->start_date);
@@ -97,6 +99,7 @@ class Timespan_admin_Controller extends Admin_Controller
 				->where('id', 1)
 				->find();
 			$form['mode'] = $settings->mode;
+			$form['interval_mode'] = $settings->interval_mode;
 			$form['days_back'] = $settings->days_back;
 			if($settings->start_date != null)
 			{
@@ -108,7 +111,7 @@ class Timespan_admin_Controller extends Admin_Controller
 			}
 		}
 		
-		//get the list of layers
+		//get the list of modes
 		$mode = array
 		(
 			"1" => "Show all from now till N days back",
@@ -117,9 +120,17 @@ class Timespan_admin_Controller extends Admin_Controller
 			"4" => "Show most active month" 
 		);
 		
+		//get list of interval modes
+		$interval_mode = array
+		(
+			"1" => "Months",
+			"2" => "Days"
+		);
+		
 		$this->template->content->form_saved = $form_saved;
 		$this->template->content->form = $form;
 		$this->template->content->mode = $mode;
+		$this->template->content->interval_mode = $interval_mode;
 		$this->template->content->form_error = $form_error;
 		$this->template->content->date_picker_js_start = $this->_date_picker_js("start_date");
 		$this->template->content->date_picker_js_end = $this->_date_picker_js("end_date");

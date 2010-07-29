@@ -32,6 +32,9 @@ class timespan {
 		Event::add('ushahidi_filter.active_startDate', array($this, '_set_startDate'));		
 		Event::add('ushahidi_filter.active_endDate', array($this, '_set_endDate'));		
 		Event::add('ushahidi_filter.active_month', array($this, '_set_month'));		
+		
+		Event::add('ushahidi_filter.startDate', array($this, '_set_slider_start'));
+		Event::add('ushahidi_filter.endDate', array($this, '_set_slider_end'));
 	}
 	
 	/**
@@ -50,12 +53,14 @@ class timespan {
 			//get the time N days ago
 			$startDate = time() - ($n_days * 24 * 60 * 60);
 			
+			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
 			
 		}
 		elseif($mode == 2) //From date N to date M
 		{
 			$startDate = strtotime($this->settings->start_date);
+			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
@@ -68,11 +73,12 @@ class timespan {
 				$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
 			}
 			
+			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
 		}
 		elseif($mode == 4) //Most active month
 		{
-			//don't do anything
+			$this->active_startDate = Event::$data;
 		}
 		
 	}//end method
@@ -91,12 +97,14 @@ class timespan {
 			//get the current date
 			$endDate = time();
 			
+			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
 			
 		}
 		elseif($mode == 2) //From date N to date M
 		{
 			$endDate = strtotime($this->settings->end_date);
+			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
@@ -109,11 +117,12 @@ class timespan {
 				//add in an extra month so it's inclusive
 				$endDate = strtotime($query_active->incident_date) + (31*24 * 60 * 60);				
 			}
-			
+			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
 		}
 		elseif($mode == 4) //Most active month
 		{
+			$this->active_endDate = Event::$data;
 		}
 		
 	}//end method
@@ -133,11 +142,13 @@ class timespan {
 			$month = date("m");
 			
 			Event::$data = $month;
+			$this->month = Event::$data;
 		}
 		elseif($mode == 2) //From date N to date M
 		{
 			$month = date("m",strtotime($this->settings->end_date));
 			Event::$data = $month;
+			$this->month = Event::$data;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
 		{
@@ -150,14 +161,121 @@ class timespan {
 			}
 			
 			Event::$data = $month;
+			$this->month = Event::$data;
 		}
 		elseif($mode == 4) //Most active month
 		{
+			$this->month = Event::$data;
 		}
 		
 	}//end method
 
 
+	/**
+	* Used to set the increments of the slider
+	* This should set the startDate variable
+	*/ 
+	public function _set_slider_start()
+	{
+	
+		//first get all the date information out of our nifty parameter passing array
+		$startDate = Event::$data['startDate'];
+
+		//if the interval_mode is set to 1, then just leave the interval at months
+		//but if interval_mode is set to 2 then rewrite things as days
+		if($this->settings->interval_mode == 1) //leave the interval at months
+		{
+			$this->startDate = $startDate;
+		}
+		elseif($this->settings->interval_mode == 2) //switch intervals to days
+		{
+
+			/**************************************************
+			A special thanks to the Ushahidi Hait people.
+			I just copy and pasted this code from their instance
+			and only made minor changes
+			***************************************************/
+		
+			$timeframe_stop = $this->active_endDate;
+			$timeframe_start = $this->active_startDate;
+			
+			$start_lastMonth = date("F", $timeframe_start);
+			$end_lastMonth =  date("F", $timeframe_start+86399);
+			//now start making some changes to things
+			//We'll be focusedon changing the things in $startDate and $endDate
+			$days = floor(($timeframe_stop - $timeframe_start) / 86400);
+			//figure out the 4 digit year of the activeStart Date
+			$startDate = "<optgroup label=\"".date("F Y", $timeframe_start)."\">";
+			$endDate = "<optgroup label=\"".date("F Y", $timeframe_start)."\">";
+			for ($i=0; $i <= $days; $i++)
+			{
+				$startDate .= "<option value=\"".$timeframe_start."\"";
+				if ($i==0)
+				{
+					$startDate .= " selected=\"selected\" ";
+				}
+				$startDate .= ">" . date('M j Y', $timeframe_start) . "</option>";
+
+				$timeframe_stop = $timeframe_start+86399;
+				
+				//check to see if we need a new option group
+				if($end_lastMonth != date("F", $timeframe_stop))
+				{
+					$end_lastMonth = date("F", $timeframe_stop);
+					$endDate .= "</optgroup>";
+					$endDate .= "<optgroup label=\"".date("F Y", $timeframe_stop)."\">";
+				}
+				
+				$endDate .= "<option value=\"".$timeframe_stop."\"";
+				
+				if ($i==$days) 
+				{
+					$endDate .= " selected=\"selected\" ";
+				}
+
+				$endDate .= ">" . date('M j Y', $timeframe_stop) . "</option>";
+				$timeframe_start = $timeframe_start + 86400;
+				
+				//check to see if we need a new option group
+				if($start_lastMonth != date("F", $timeframe_start))
+				{
+					$start_lastMonth = date("F", $timeframe_start);
+					$startDate .= "</optgroup>";
+					$startDate .= "<optgroup label=\"".date("F Y", $timeframe_start)."\">";
+				}
+
+			}
+			$startDate .= "</optgroup>";
+			$endDate .= "</optgroup>";
+			
+			$this->startDate = $startDate;
+			$this->endDate = $endDate;
+			Event::$data = $startDate;
+		}
+
+	} //end method _set_slider_start
+	
+	
+	/**
+	* Used to set the increments of the slider
+	* This should set the endDate variable
+	* all the processing was done in the above function
+	* but to set two seperate variables we need two seperate
+	* filters
+	*/ 
+	public function _set_slider_end()
+	{
+			//if the interval_mode is set to 1, then just leave the interval at months
+		//but if interval_mode is set to 2 then rewrite things as days
+		if($this->settings->interval_mode == 1) //leave the interval at months
+		{
+			$this->endDate = Event::$data;
+		}
+		else if($this->settings->interval_mode == 2)
+		{
+			Event::$data = $this->endDate;
+		}
+	} //end method _set_slider_end
 	
 }//end class
 
