@@ -70,7 +70,16 @@ class timespan {
 			$startDate = "";
 			foreach ($query as $query_active)
 			{
-				$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
+				//if the slider's increments are set in terms of months we'll need to subtract another month
+				//from the start date because the timeline rounds up to th nearest month
+				if($this->settings->interval_mode == 1)
+				{
+					$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
+				}
+				elseif($this->settings->interval_mode==2)
+				{
+					$startDate = strtotime($query_active->incident_date) - (24 * 60 * 60); //subtract out a day
+				}
 			}
 			
 			$this->active_startDate = $startDate;
@@ -114,8 +123,16 @@ class timespan {
 			$endDate = "";
 			foreach ($query as $query_active)
 			{
-				//add in an extra month so it's inclusive
-				$endDate = strtotime($query_active->incident_date) + (31*24 * 60 * 60);				
+				//if the slider's increments are set in terms of months we'll need to add another month
+				//to the end date because the timeline rounds up to th nearest month
+				if($this->settings->interval_mode == 1)
+				{
+					$endDate = strtotime($query_active->incident_date) + (31 * 24 * 60 * 60);
+				}
+				elseif($this->settings->interval_mode==2) //if it's a day just add a day
+				{
+					$endDate = strtotime($query_active->incident_date) + (24 * 60 * 60); 
+				}		
 			}
 			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
