@@ -47,41 +47,19 @@ class timespan {
 		
 		if($mode == 1) //the last N days
 		{
-			//find out how many days ago we should go
-			$n_days = $this->settings->days_back;
-			
-			//get the time N days ago
-			$startDate = time() - ($n_days * 24 * 60 * 60);
-			
+			$startDate = $this->start_last_n_days();
 			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
-			
 		}
 		elseif($mode == 2) //From date N to date M
 		{
-			$startDate = strtotime($this->settings->start_date);
+			$startDate = $this->start_from_n_to_m();
 			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
 		{
-			$db = new Database();
-			$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date ASC LIMIT 1');
-			$startDate = "";
-			foreach ($query as $query_active)
-			{
-				//if the slider's increments are set in terms of months we'll need to subtract another month
-				//from the start date because the timeline rounds up to th nearest month
-				if($this->settings->interval_mode == 1)
-				{
-					$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
-				}
-				elseif($this->settings->interval_mode==2)
-				{
-					$startDate = strtotime($query_active->incident_date) - (24 * 60 * 60); //subtract out a day
-				}
-			}
-			
+			$startDate = $this->start_all_reports();
 			$this->active_startDate = $startDate;
 			Event::$data = $startDate;
 		}
@@ -104,7 +82,7 @@ class timespan {
 		if($mode == 1) //the last N months
 		{
 			//get the current date
-			$endDate = time();
+			$endDate = $this->end_last_n_days();
 			
 			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
@@ -112,28 +90,13 @@ class timespan {
 		}
 		elseif($mode == 2) //From date N to date M
 		{
-			$endDate = strtotime($this->settings->end_date);
+			$endDate = $this->end_from_n_to_m();
 			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
 		{
-			$db = new Database();
-			$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1');
-			$endDate = "";
-			foreach ($query as $query_active)
-			{
-				//if the slider's increments are set in terms of months we'll need to add another month
-				//to the end date because the timeline rounds up to th nearest month
-				if($this->settings->interval_mode == 1)
-				{
-					$endDate = strtotime($query_active->incident_date) + (31 * 24 * 60 * 60);
-				}
-				elseif($this->settings->interval_mode==2) //if it's a day just add a day
-				{
-					$endDate = strtotime($query_active->incident_date) + (24 * 60 * 60); 
-				}		
-			}
+			$endDate = $this->end_all_reports();
 			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
 		}
@@ -213,25 +176,45 @@ class timespan {
 			and only made minor changes
 			***************************************************/
 		
-			$timeframe_stop = $this->active_endDate;
-			$timeframe_start = $this->active_startDate;
+			//regardless of the default timespan we want to give the user
+			//the option to see all of the events in the system so we use the
+			//X_all_reports() methods to get the date range of al reports
+			$timeframe_stop = $this->end_all_reports();
+			$timeframe_start = $this->start_all_reports();
+			
+			//check and see which set of dates is greater, all reports or active_dates
+			if($this->active_endDate > $timeframe_stop)
+			{
+				$timeframe_stop = $this->active_endDate;
+			}
+			if($this->active_startDate < $timeframe_start)
+			{
+				$timeframe_start = $this->active_startDate;
+			}
+			$timeframe_start = $timeframe_start - (86400 * 15); //gives us a 15 day margin at the start
+			$timeframe_stop = $timeframe_stop + (86400 *15); //gives us a 15 day margin at the end
 			
 			$start_lastMonth = date("F", $timeframe_start);
 			$end_lastMonth =  date("F", $timeframe_start+86399);
 			//now start making some changes to things
 			//We'll be focusedon changing the things in $startDate and $endDate
 			$days = floor(($timeframe_stop - $timeframe_start) / 86400);
+			$startDay = floor(($this->active_startDate - $timeframe_start) / 86400);
+			$endDay = floor(($this->active_endDate - $timeframe_start) / 86400);
+
+			//echo "days = ".$days." startDay = ".$startDay. " endDay = ". $endDay;
 			//figure out the 4 digit year of the activeStart Date
 			$startDate = "<optgroup label=\"".date("F Y", $timeframe_start)."\">";
 			$endDate = "<optgroup label=\"".date("F Y", $timeframe_start)."\">";
 			for ($i=0; $i <= $days; $i++)
 			{
 				$startDate .= "<option value=\"".$timeframe_start."\"";
-				if ($i==0)
+				if ($i==$startDay)
 				{
 					$startDate .= " selected=\"selected\" ";
 				}
 				$startDate .= ">" . date('M j Y', $timeframe_start) . "</option>";
+				//echo "<br/> i = ".$i." startDate = ".date('M j Y', $timeframe_start);
 
 				$timeframe_stop = $timeframe_start+86399;
 				
@@ -245,7 +228,7 @@ class timespan {
 				
 				$endDate .= "<option value=\"".$timeframe_stop."\"";
 				
-				if ($i==$days) 
+				if ($i==$endDay) 
 				{
 					$endDate .= " selected=\"selected\" ";
 				}
@@ -293,6 +276,101 @@ class timespan {
 			Event::$data = $this->endDate;
 		}
 	} //end method _set_slider_end
+	
+	
+	/**
+	* returns the start date when the mode is last N days
+	**/
+	private function start_last_n_days()
+	{
+		//find out how many days ago we should go
+		$n_days = $this->settings->days_back;
+			
+		//get the time N days ago
+		$startDate = time() - ($n_days * 24 * 60 * 60);
+		return $startDate;
+	}
+	
+	
+	/**
+	* returns the start date when the mode is from date N to date M
+	**/
+	private function start_from_n_to_m()
+	{
+		$startDate = strtotime($this->settings->start_date);
+		return $startDate;
+	}
+	
+	/**
+	* Return the start date when the mode is set to show all reports
+	**/
+	private function start_all_reports()
+	{
+		$db = new Database();
+		$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date ASC LIMIT 1');
+		$startDate = "";
+		foreach ($query as $query_active)
+		{
+			//if the slider's increments are set in terms of months we'll need to subtract another month
+			//from the start date because the timeline rounds up to th nearest month
+			if($this->settings->interval_mode == 1)
+			{
+				$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
+			}
+			elseif($this->settings->interval_mode==2)
+			{
+				$startDate = strtotime($query_active->incident_date) - (24 * 60 * 60); //subtract out a day
+			}
+		}
+
+		return $startDate;
+	}
+
+	/**
+	* returns the end date when the mode is last N days
+	**/
+	private function end_last_n_days()
+	{
+		//get the current date
+		$endDate = time();
+		return $endDate;
+	}
+	
+	
+	/**
+	* returns the end date when the mode is from date N to date M
+	**/
+	private function end_from_n_to_m()
+	{
+		$endDate = strtotime($this->settings->end_date);
+		return $endDate;
+	}
+	
+	/**
+	* Return the end date when the mode is set to show all reports
+	**/
+	private function end_all_reports()
+	{
+		$db = new Database();
+		$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1');
+		$endDate = "";
+		foreach ($query as $query_active)
+		{
+			//if the slider's increments are set in terms of months we'll need to add another month
+			//to the end date because the timeline rounds up to th nearest month
+			if($this->settings->interval_mode == 1)
+			{
+				$endDate = strtotime($query_active->incident_date) + (31 * 24 * 60 * 60);
+			}
+			elseif($this->settings->interval_mode==2) //if it's a day just add a day
+			{
+				$endDate = strtotime($query_active->incident_date) + (24 * 60 * 60); 
+			}		
+		}
+		return $endDate;
+	}
+
+
 	
 }//end class
 
