@@ -2,7 +2,7 @@
 name: Time Span
 website: http://apps.ushahidi.com
 description: Lets you configure what the default time span should be that's displayed on the time line.
-version: 0.1
+version: 1.0
 requires: 2.0
 tested up to: 2.0
 author: John Etherton
