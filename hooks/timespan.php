@@ -21,6 +21,9 @@ class timespan {
 		$this->settings = ORM::factory('timespan')
 				->where('id', 1)
 				->find();
+				
+		// Set Table Prefix
+		$this->table_prefix = Kohana::config('database.default.table_prefix');				
 		
 	}
 	
@@ -160,13 +163,61 @@ class timespan {
 	
 		//first get all the date information out of our nifty parameter passing array
 		$startDate = Event::$data['startDate'];
+		$endDate = null;
 
 		//if the interval_mode is set to 1, then just leave the interval at months
 		//but if interval_mode is set to 2 then rewrite things as days
 		if($this->settings->interval_mode == 1) //leave the interval at months
 		{
+			$startMonth = date('n', $this->active_startDate);
+			$startYear =  date('Y', $this->active_startDate);
+			$endMonth =  date('n', $this->active_endDate);
+			$endYear = date('Y', $this->active_endDate);
+			
+			$db = new Database();
+			$query = $db->query('SELECT DATE_FORMAT(incident_date, \'%Y\') AS incident_date FROM '.$this->table_prefix.'incident WHERE incident_active = 1 GROUP BY DATE_FORMAT(incident_date, \'%Y\') ORDER BY incident_date');
+			foreach ($query as $slider_date)
+			{
+				$years = $slider_date->incident_date;
+				$startDate .= "<optgroup label=\"" . $years . "\">";
+				for ( $i=1; $i <= 12; $i++ ) {
+					if ( $i < 10 )
+					{
+						$i = "0" . $i;
+					}
+					$startDate .= "<option value=\"" . strtotime($years . "-" . $i . "-01") . "\"";
+					if ( $startMonth && ( (int) $i == ( $startMonth - 1)) && ($years == $startYear) )
+					{
+						$startDate .= " selected=\"selected\" ";
+					}
+					$startDate .= ">" . date('M', mktime(0,0,0,$i,1)) . " " . $years . "</option>";
+				}
+				$startDate .= "</optgroup>";
+
+				$endDate .= "<optgroup label=\"" . $years . "\">";
+				for ( $i=1; $i <= 12; $i++ )
+				{
+					if ( $i < 10 )
+					{
+						$i = "0" . $i;
+					}
+					$endDate .= "<option value=\"" . strtotime($years . "-" . $i . "-" . date('t', mktime(0,0,0,$i,1))." 23:59:59") . "\"";
+					// Focus on the end Month
+					if ( $endMonth && ( ( (int) $i == ( $endMonth + 1)) ) && ($years == $endYear))
+					{
+						$endDate .= " selected=\"selected\" ";
+					}
+					$endDate .= ">" . date('M', mktime(0,0,0,$i,1)) . " " . $years . "</option>";
+				}
+				$endDate .= "</optgroup>";
+			}
+			
 			$this->startDate = $startDate;
+			$this->endDate = $endDate;
+			Event::$data = $startDate;
+
 		}
+		////////////////////////////////////////////////////////END MONTHS ///////// START DAYS
 		elseif($this->settings->interval_mode == 2) //switch intervals to days
 		{
 
@@ -269,7 +320,7 @@ class timespan {
 		//but if interval_mode is set to 2 then rewrite things as days
 		if($this->settings->interval_mode == 1) //leave the interval at months
 		{
-			$this->endDate = Event::$data;
+			Event::$data = $this->endDate;
 		}
 		else if($this->settings->interval_mode == 2)
 		{
