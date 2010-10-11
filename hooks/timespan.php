@@ -162,8 +162,8 @@ class timespan {
 	{
 	
 		//first get all the date information out of our nifty parameter passing array
-		$startDate = Event::$data['startDate'];
-		$endDate = null;
+		$startDate = "";
+		$endDate = "";
 
 		//if the interval_mode is set to 1, then just leave the interval at months
 		//but if interval_mode is set to 2 then rewrite things as days
