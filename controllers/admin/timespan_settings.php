@@ -6,7 +6,7 @@
  * @package	   Time Span
  */
 
-class Timespan_admin_Controller extends Admin_Controller
+class Timespan_settings_Controller extends Admin_Controller
 {
 
 	function __construct()

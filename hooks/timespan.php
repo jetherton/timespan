@@ -23,7 +23,8 @@ class timespan {
 				->find();
 				
 		// Set Table Prefix
-		$this->table_prefix = Kohana::config('database.default.table_prefix');				
+		$this->table_prefix = Kohana::config('database.default.table_prefix');		
+
 		
 	}
 	
@@ -70,6 +71,7 @@ class timespan {
 		{
 			$this->active_startDate = Event::$data;
 		}
+		
 		
 	}//end method
 
@@ -303,7 +305,6 @@ class timespan {
 			$this->endDate = $endDate;
 			Event::$data = $startDate;
 		}
-
 	} //end method _set_slider_start
 	
 	

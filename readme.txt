@@ -2,9 +2,8 @@
 name: Time Span
 website: http://apps.ushahidi.com
 description: Lets you configure what the default time span should be that's displayed on the time line.
-version: 1.0
-requires: 2.0
-tested up to: 2.0
+version: 1.1
+requires: 2.0b10
 author: John Etherton
 author website: http://johnetherton.com
 
@@ -19,3 +18,4 @@ Let you select how you'd like the time span that's displayed on the time line to
 2. Activate the plugin.
 
 == Changelog ==
+v1.1 - 2010/10/26 -  Changed the plugin to handle the switch from <plugin-name>_admin.php to <plugin-name>_settings.php for the name of the admin file.
