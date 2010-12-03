@@ -163,7 +163,6 @@ class timespan {
 	public function _set_slider_start()
 	{
 	
-		//first get all the date information out of our nifty parameter passing array
 		$startDate = "";
 		$endDate = "";
 
@@ -176,40 +175,37 @@ class timespan {
 			$endMonth =  date('n', $this->active_endDate);
 			$endYear = date('Y', $this->active_endDate);
 			
-			$db = new Database();
-			$query = $db->query('SELECT DATE_FORMAT(incident_date, \'%Y\') AS incident_date FROM '.$this->table_prefix.'incident WHERE incident_active = 1 GROUP BY DATE_FORMAT(incident_date, \'%Y\') ORDER BY incident_date');
-			foreach ($query as $slider_date)
+									
+			for($years = $startYear; $years <= $endYear; $years++)
 			{
-				$years = $slider_date->incident_date;
 				$startDate .= "<optgroup label=\"" . $years . "\">";
 				for ( $i=1; $i <= 12; $i++ ) {
-					if ( $i < 10 )
-					{
-						$i = "0" . $i;
-					}
-					$startDate .= "<option value=\"" . strtotime($years . "-" . $i . "-01") . "\"";
-					if ( $startMonth && ( (int) $i == ( $startMonth - 1)) && ($years == $startYear) )
+					
+					//calculate the working date
+					$startWorkingDate = mktime(0, 0, 0, $i, 1, $years);
+					
+					$startDate .= "<option value=\"" . $startWorkingDate. "\"";
+					if ( $startMonth && ( (int) $i == ( $startMonth - 0)) && ($years == $startYear) )
 					{
 						$startDate .= " selected=\"selected\" ";
 					}
-					$startDate .= ">" . date('M', mktime(0,0,0,$i,1)) . " " . $years . "</option>";
+					$startDate .= ">" . date('M', $startWorkingDate) . " " . $years . "</option>";
 				}
 				$startDate .= "</optgroup>";
 
 				$endDate .= "<optgroup label=\"" . $years . "\">";
 				for ( $i=1; $i <= 12; $i++ )
 				{
-					if ( $i < 10 )
-					{
-						$i = "0" . $i;
-					}
-					$endDate .= "<option value=\"" . strtotime($years . "-" . $i . "-" . date('t', mktime(0,0,0,$i,1))." 23:59:59") . "\"";
+					//calculate the working date
+					$endWorkingDate = mktime(23, 59, 59, $i+1, 0, $years);
+				
+					$endDate .= "<option value=\"" . $endWorkingDate . "\"";
 					// Focus on the end Month
-					if ( $endMonth && ( ( (int) $i == ( $endMonth + 1)) ) && ($years == $endYear))
+					if ( $endMonth && ( ( (int) $i == ( $endMonth + 0)) ) && ($years == $endYear))
 					{
 						$endDate .= " selected=\"selected\" ";
 					}
-					$endDate .= ">" . date('M', mktime(0,0,0,$i,1)) . " " . $years . "</option>";
+					$endDate .= ">" . date('M', $endWorkingDate) . " " . $years . "</option>";
 				}
 				$endDate .= "</optgroup>";
 			}
@@ -367,11 +363,15 @@ class timespan {
 			//from the start date because the timeline rounds up to th nearest month
 			if($this->settings->interval_mode == 1)
 			{
-				$startDate = strtotime($query_active->incident_date) - (31 * 24 * 60 * 60); //subtract out a month to make sure it's all included.				
+				$startDate = strtotime($query_active->incident_date); //round down to the start of the month				
+				$roundedDate = mktime(0, 0, 0, date("n", $startDate)-1, 1, date("Y", $startDate));
+				$startDate = $roundedDate;
 			}
 			elseif($this->settings->interval_mode==2)
 			{
-				$startDate = strtotime($query_active->incident_date) - (24 * 60 * 60); //subtract out a day
+				$startDate = strtotime($query_active->incident_date); //round down to the start of the day
+				$roundedDate = mktime(0, 0, 0, date("n", $startDate), date("j", $startDate)-1, date("Y", $startDate));
+				$startDate = $roundedDate;
 			}
 		}
 
@@ -408,15 +408,18 @@ class timespan {
 		$endDate = "";
 		foreach ($query as $query_active)
 		{
-			//if the slider's increments are set in terms of months we'll need to add another month
-			//to the end date because the timeline rounds up to th nearest month
+			//if the slider's increments are set in terms of months add the rest of the days to the end of the month
 			if($this->settings->interval_mode == 1)
 			{
-				$endDate = strtotime($query_active->incident_date) + (31 * 24 * 60 * 60);
+				$endDate = strtotime($query_active->incident_date); //rounds to the end of the month
+				$roundedDate = mktime(0, 0, 0, date("n", $endDate)+1, 0, date("Y", $endDate));
+				$endDate = $roundedDate;
 			}
-			elseif($this->settings->interval_mode==2) //if it's a day just add a day
+			elseif($this->settings->interval_mode==2) //if it's a day just add more hours/minutes till midnight
 			{
-				$endDate = strtotime($query_active->incident_date) + (24 * 60 * 60); 
+				$endDate = strtotime($query_active->incident_date); 
+				$roundedDate = mktime(23, 59, 59, date("n", $endDate), date("j", $endDate)+1, date("Y", $endDate));
+				$endDate = $roundedDate;
 			}		
 		}
 		return $endDate;
