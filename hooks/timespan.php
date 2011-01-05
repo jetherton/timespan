@@ -25,6 +25,13 @@ class timespan {
 		// Set Table Prefix
 		$this->table_prefix = Kohana::config('database.default.table_prefix');		
 
+		//sets whether we're looking at frontend or backend stuff. Used to
+		//decide if we show unapproved reports or not.
+		$this->backend = false;
+		if( substr(url::current(),0,5) == "admin")
+		{
+			$this->backend = true;
+		}
 		
 	}
 	
@@ -33,6 +40,7 @@ class timespan {
 	 */
 	public function add()
 	{
+	
 		Event::add('ushahidi_filter.active_startDate', array($this, '_set_startDate'));		
 		Event::add('ushahidi_filter.active_endDate', array($this, '_set_endDate'));		
 		Event::add('ushahidi_filter.active_month', array($this, '_set_month'));		
@@ -138,7 +146,12 @@ class timespan {
 		elseif($mode == 3) //Make the time span encompass all events
 		{
 			$db = new Database();
-			$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1');
+			$query_text = 'SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1';
+			if($this->backend)
+			{
+				$query_text = 'SELECT incident_date FROM incident ORDER BY incident_date DESC LIMIT 1';
+			}
+			$query = $db->query($query_text);
 			$month = "";
 			foreach ($query as $query_active)
 			{
@@ -355,7 +368,12 @@ class timespan {
 	private function start_all_reports()
 	{
 		$db = new Database();
-		$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date ASC LIMIT 1');
+		$query_text = 'SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date ASC LIMIT 1';
+		if($this->backend)
+		{
+			$query_text = 'SELECT incident_date FROM incident ORDER BY incident_date ASC LIMIT 1';
+		}
+		$query = $db->query($query_text);
 		$startDate = "";
 		foreach ($query as $query_active)
 		{
@@ -404,7 +422,12 @@ class timespan {
 	private function end_all_reports()
 	{
 		$db = new Database();
-		$query = $db->query('SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1');
+		$query_text = "SELECT incident_date FROM incident WHERE incident_active = 1 ORDER BY incident_date DESC LIMIT 1";
+		if($this->backend)
+		{
+			$query_text = "SELECT incident_date FROM incident ORDER BY incident_date DESC LIMIT 1";
+		}
+		$query = $db->query($query_text);
 		$endDate = "";
 		foreach ($query as $query_active)
 		{
