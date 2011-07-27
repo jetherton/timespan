@@ -117,7 +117,7 @@ class Timespan_settings_Controller extends Admin_Controller
 			"1" => "Show all from now till N days back",
 			"2" => "Show all from date A to date B",
 			"3" => "Show all reports" ,
-			"4" => "Show most active month" 
+			"4" => "Ushahidi Default - Time Span Doesn't alter date filter" 
 		);
 		
 		//get list of interval modes
