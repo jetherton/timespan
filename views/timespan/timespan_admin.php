@@ -1,9 +1,7 @@
 
-<h1> Time Span - Settings</h1>
+<h1><? echo Kohana::lang('timespan.timespan');?></h1>
 <h4> 
-	<br/> Please note that Ushahidi rounds months up to the greatest month. <br/>
-	So if you set the start date as 3/24/2009, Ushahidi will round that up to 4/1/2009<br/>
-	when rendering the timeline and map.
+	<br/> <? echo Kohana::lang('timespan.timespan_description');?>
 <h4>
 <br/>
 <br/>
@@ -36,35 +34,35 @@
 
 <div>
 	<div class="row">
-		<h4>Should the intervals on the time line be days or months?</h4>
+		<h4><? echo Kohana::lang('timespan.interval');?></h4>
 		<?php print form::dropdown('interval_mode',$interval_mode, $form['interval_mode']); ?>
 	</div>
 	<br/>
 	<div class="row">
-		<h4>Which mode should be used to calculate the default time span of the time line?</h4>
+		<h4><? echo Kohana::lang('timespan.calculate');?></h4>
 		<?php print form::dropdown('mode',$mode, $form['mode']); ?>
 	</div>
 	<br/>
 	<div class="row">
-		<h4>If using days back:</h4>
-		how many days back from the current date should the time span be set to?<br/>
+		<h4><? echo Kohana::lang('timespan.days');?></h4><? echo Kohana::lang('timespan.back');?>
+	<br/>
 		<?php print form::input('days_back', $form['days_back']); ?>
 	</div>
 	<br/>
 	<div class="row">
-		<h4>If using start and end dates:</h4>
+		<h4><? echo Kohana::lang('timespan.dates');?></h4>
 		<table>
 			<tr>
 				<td>
 					<div class="date-box">
-						<h4>Start Date: </h4> <span><?php echo Kohana::lang('ui_main.date_format');?></span>
+						<h4><? echo Kohana::lang('timespan.start');?></h4> <span><?php echo Kohana::lang('ui_main.date_format');?></span>
 						<?php print form::input('start_date', $form['start_date'], ' class="text"'); ?>								
 						<?php print $date_picker_js_start; ?>				    
 					</div>
 				</td>
 				<td>
 					<div class="date-box">
-						<h4>End Date: </h4> <span><?php echo Kohana::lang('ui_main.date_format');?></span>
+						<h4><? echo Kohana::lang('timespan.end');?></h4> <span><?php echo Kohana::lang('ui_main.date_format');?></span>
 						<?php print form::input('end_date', $form['end_date'], ' class="text"'); ?>								
 						<?php print $date_picker_js_end; ?>				    
 					</div>
@@ -79,4 +77,3 @@
 <input type="image" src="<?php echo url::base() ?>media/img/admin/btn-save-settings.gif" class="save-rep-btn" style="margin-left: 0px;" />
 
 <?php print form::close(); ?>
-
