@@ -114,17 +114,17 @@ class Timespan_settings_Controller extends Admin_Controller
 		//get the list of modes
 		$mode = array
 		(
-			"1" => "Show all from now till N days back",
-			"2" => "Show all from date A to date B",
-			"3" => "Show all reports" ,
-			"4" => "Show most active month" 
-		);
+			"1" => Kohana::lang("timespan.back"),
+			"2" => Kohana::lang("timespan.date"),
+			"3" => Kohana::lang("timespan.show"),
+			"4" => Kohana::lang("timespan.active"),
+			);
 		
 		//get list of interval modes
 		$interval_mode = array
 		(
-			"1" => "Months",
-			"2" => "Days"
+			"1" => Kohana::lang("timespan.month"),
+			"2" => Kohana::lang("timespan.day"),
 		);
 		
 		$this->template->content->form_saved = $form_saved;
