@@ -29,6 +29,4 @@ $lang = array(
 'month' => 'Months',
 'day' => 'Days',
 
-
-
 );

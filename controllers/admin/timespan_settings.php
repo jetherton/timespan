@@ -117,13 +117,13 @@ class Timespan_settings_Controller extends Admin_Controller
 			"1" => Kohana::lang("timespan.back"),
 			"2" => Kohana::lang("timespan.date"),
 			"3" => Kohana::lang("timespan.show"),
-			"4" => Kohana::lang("timespan.active"),
-			);
+			"4" => Kohana::lang("timespan.active"), 
+		);
 		
 		//get list of interval modes
 		$interval_mode = array
 		(
-			"1" => Kohana::lang("timespan.month"),
+			"1" =>  Kohana::lang("timespan.month"),
 			"2" => Kohana::lang("timespan.day"),
 		);
 		
