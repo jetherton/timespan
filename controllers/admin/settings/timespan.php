@@ -6,7 +6,7 @@
  * @package	   Time Span
  */
 
-class Timespan_settings_Controller extends Admin_Controller
+class Timespan_Controller extends Admin_Controller
 {
 
 	function __construct()
@@ -25,6 +25,7 @@ class Timespan_settings_Controller extends Admin_Controller
 	{
 		
 		$this->template->content = new View('timespan/timespan_admin');
+		$this->template->content->title = Kohana::lang('ui_admin.settings');
 		
 		//create the form array
 		$form = array
