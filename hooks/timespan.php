@@ -47,6 +47,8 @@ class timespan {
 		
 		Event::add('ushahidi_filter.startDate', array($this, '_set_slider_start'));
 		Event::add('ushahidi_filter.endDate', array($this, '_set_slider_end'));
+		
+		Event::add('ushahidi_action.nav_admin_settings', array($this, 'nav_admin_settings'));
 	}
 	
 	/**
@@ -448,7 +450,10 @@ class timespan {
 		return $endDate;
 	}
 
-
+	public function nav_admin_settings()
+	{
+		echo (Event::$data == "timespan") ? Kohana::lang('timespan.timespan') : "<a href=\"".url::site()."admin/settings/timespan\">".Kohana::lang('timespan.timespan')."</a>";
+	}
 	
 }//end class
 

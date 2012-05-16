@@ -11,7 +11,7 @@
  */
 
 $lang = array(
-'timespan' => 'Time Span - Settings',
+'timespan' => 'Time Span',
 'timespan_description' => 'Please note that Ushahidi rounds months up to the greatest month.
 					  <br/>So if you set the start date as 3/24/2009, Ushahidi will round that up to 4/1/2009<br/>
 						when rendering the timeline and map.',
