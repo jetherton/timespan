@@ -181,16 +181,36 @@ class timespan {
 		$startDate = "";
 		$endDate = "";
 
+		//regardless of the default timespan we want to give the user
+		//the option to see all of the events in the system so we use the
+		//X_all_reports() methods to get the date range of al reports
+		$timeframe_stop = $this->end_all_reports();
+		$timeframe_start = $this->start_all_reports();
+		
+		//check and see which set of dates is greater, all reports or active_dates
+		if($this->active_endDate > $timeframe_stop)
+		{
+			$timeframe_stop = $this->active_endDate;
+		}
+		if($this->active_startDate < $timeframe_start)
+		{
+			$timeframe_start = $this->active_startDate;
+		}
+
 		//if the interval_mode is set to 1, then just leave the interval at months
 		//but if interval_mode is set to 2 then rewrite things as days
 		if($this->settings->interval_mode == 1) //leave the interval at months
 		{
-			$startMonth = date('n', $this->active_startDate);
-			$startYear =  date('Y', $this->active_startDate);
-			$endMonth =  date('n', $this->active_endDate);
-			$endYear = date('Y', $this->active_endDate);
+			$startMonth = date('n', $timeframe_start);
+			$startYear =  date('Y', $timeframe_start);
+			$endMonth =  date('n', $timeframe_stop);
+			$endYear = date('Y', $timeframe_stop);
 			
-									
+			$active_startYear = date('Y', $this->active_startDate);
+			$active_startMonth = date('n', $this->active_startDate);
+			$active_endYear = date('Y', $this->active_endDate);
+			$active_endMonth = date('n', $this->active_endDate);
+			
 			for($years = $startYear; $years <= $endYear; $years++)
 			{
 				$startDate .= "<optgroup label=\"" . $years . "\">";
@@ -200,7 +220,7 @@ class timespan {
 					$startWorkingDate = mktime(0, 0, 0, $i, 1, $years);
 					
 					$startDate .= "<option value=\"" . $startWorkingDate. "\"";
-					if ( $startMonth && ( (int) $i == ( $startMonth - 0)) && ($years == $startYear) )
+					if ( $startMonth && ( (int) $i == ( $active_startMonth - 0)) && ($years == $active_startYear) )
 					{
 						$startDate .= " selected=\"selected\" ";
 					}
@@ -216,7 +236,7 @@ class timespan {
 				
 					$endDate .= "<option value=\"" . $endWorkingDate . "\"";
 					// Focus on the end Month
-					if ( $endMonth && ( ( (int) $i == ( $endMonth + 0)) ) && ($years == $endYear))
+					if ( $endMonth && ( ( (int) $i == ( $active_endMonth + 0)) ) && ($years == $active_endYear))
 					{
 						$endDate .= " selected=\"selected\" ";
 					}
@@ -239,22 +259,6 @@ class timespan {
 			I just copy and pasted this code from their instance
 			and only made minor changes
 			***************************************************/
-		
-			//regardless of the default timespan we want to give the user
-			//the option to see all of the events in the system so we use the
-			//X_all_reports() methods to get the date range of al reports
-			$timeframe_stop = $this->end_all_reports();
-			$timeframe_start = $this->start_all_reports();
-			
-			//check and see which set of dates is greater, all reports or active_dates
-			if($this->active_endDate > $timeframe_stop)
-			{
-				$timeframe_stop = $this->active_endDate;
-			}
-			if($this->active_startDate < $timeframe_start)
-			{
-				$timeframe_start = $this->active_startDate;
-			}
 			$timeframe_start = $timeframe_start - (86400 * 15); //gives us a 15 day margin at the start
 			$timeframe_stop = $timeframe_stop + (86400 *15); //gives us a 15 day margin at the end
 			
