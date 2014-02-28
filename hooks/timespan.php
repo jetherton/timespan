@@ -62,20 +62,18 @@ class timespan {
 		if($mode == 1) //the last N days
 		{
 			$startDate = $this->start_last_n_days();
-			$this->active_startDate = $startDate;
-			Event::$data = $startDate;
+			Event::$data = $this->active_startDate = $startDate;
 		}
 		elseif($mode == 2) //From date N to date M
 		{
 			$startDate = $this->start_from_n_to_m();
-			$this->active_startDate = $startDate;
-			Event::$data = $startDate;
+			Event::$data = $this->active_startDate = $startDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
 		{
 			$startDate = $this->start_all_reports();
-			$this->active_startDate = $startDate;
-			Event::$data = $startDate;
+			$startDate = $startDate ? $startDate : time();
+			Event::$data = $this->active_startDate = $startDate;
 		}
 		elseif($mode == 4) //Most active month
 		{
@@ -99,21 +97,18 @@ class timespan {
 			//get the current date
 			$endDate = $this->end_last_n_days();
 
-			$this->active_endDate = $endDate;
-			Event::$data = $endDate;
-
+			Event::$data = $this->active_endDate = $endDate;
 		}
 		elseif($mode == 2) //From date N to date M
 		{
 			$endDate = $this->end_from_n_to_m();
-			$this->active_endDate = $endDate;
-			Event::$data = $endDate;
+			Event::$data = $this->active_endDate = $endDate;
 		}
 		elseif($mode == 3) //Make the time span encompass all events
 		{
 			$endDate = $this->end_all_reports();
-			$this->active_endDate = $endDate;
-			Event::$data = $endDate;
+			$endDate = $endDate ? $endDate : time();
+			Event::$data = $this->active_endDate = $endDate;
 		}
 		elseif($mode == 4) //Most active month
 		{
