@@ -7,23 +7,23 @@
  */
 
 class timespan {
-	
+
 	/**
 	 * Registers the main event add method
 	 */
-	 
-	 
+
+
 	public function __construct()
 	{
 		// Hook into routing
 		Event::add('system.pre_controller', array($this, 'add'));
-		
+
 		$this->settings = ORM::factory('timespan')
 				->where('id', 1)
 				->find();
-				
+
 		// Set Table Prefix
-		$this->table_prefix = Kohana::config('database.default.table_prefix');		
+		$this->table_prefix = Kohana::config('database.default.table_prefix');
 
 		//sets whether we're looking at frontend or backend stuff. Used to
 		//decide if we show unapproved reports or not.
@@ -32,33 +32,33 @@ class timespan {
 		{
 			$this->backend = true;
 		}
-		
+
 	}
-	
+
 	/**
 	 * Adds all the events to the main Ushahidi application
 	 */
 	public function add()
 	{
-	
-		Event::add('ushahidi_filter.active_startDate', array($this, '_set_startDate'));		
-		Event::add('ushahidi_filter.active_endDate', array($this, '_set_endDate'));		
-		Event::add('ushahidi_filter.active_month', array($this, '_set_month'));		
-		
+
+		Event::add('ushahidi_filter.active_startDate', array($this, '_set_startDate'));
+		Event::add('ushahidi_filter.active_endDate', array($this, '_set_endDate'));
+		Event::add('ushahidi_filter.active_month', array($this, '_set_month'));
+
 		Event::add('ushahidi_filter.startDate', array($this, '_set_slider_start'));
 		Event::add('ushahidi_filter.endDate', array($this, '_set_slider_end'));
-		
+
 		Event::add('ushahidi_action.nav_admin_settings', array($this, 'nav_admin_settings'));
 	}
-	
+
 	/**
 	 * Figure out what the start date should be
 	 */
 	public function _set_startDate()
 	{
 		//What method are we use to set the date?
-		$mode = $this->settings->mode; 
-		
+		$mode = $this->settings->mode;
+
 		if($mode == 1) //the last N days
 		{
 			$startDate = $this->start_last_n_days();
@@ -81,8 +81,8 @@ class timespan {
 		{
 			$this->active_startDate = Event::$data;
 		}
-		
-		
+
+
 	}//end method
 
 
@@ -92,16 +92,16 @@ class timespan {
 	public function _set_endDate()
 	{
 		//What method are we use to set the date?
-		$mode = $this->settings->mode; 
-		
+		$mode = $this->settings->mode;
+
 		if($mode == 1) //the last N months
 		{
 			//get the current date
 			$endDate = $this->end_last_n_days();
-			
+
 			$this->active_endDate = $endDate;
 			Event::$data = $endDate;
-			
+
 		}
 		elseif($mode == 2) //From date N to date M
 		{
@@ -119,7 +119,7 @@ class timespan {
 		{
 			$this->active_endDate = Event::$data;
 		}
-		
+
 	}//end method
 
 
@@ -130,12 +130,12 @@ class timespan {
 	{
 		//What method are we use to set the date?
 		$mode = $this->settings->mode;
-		
+
 		if($mode == 1) //the last N months
 		{
 			//get the current month
 			$month = date("m");
-			
+
 			Event::$data = $month;
 			$this->month = Event::$data;
 		}
@@ -157,9 +157,9 @@ class timespan {
 			$month = "";
 			foreach ($query as $query_active)
 			{
-				$month = date("m", strtotime($query_active->incident_date));				
+				$month = date("m", strtotime($query_active->incident_date));
 			}
-			
+
 			Event::$data = $month;
 			$this->month = Event::$data;
 		}
@@ -167,17 +167,17 @@ class timespan {
 		{
 			$this->month = Event::$data;
 		}
-		
+
 	}//end method
 
 
 	/**
 	* Used to set the increments of the slider
 	* This should set the startDate variable
-	*/ 
+	*/
 	public function _set_slider_start()
 	{
-	
+
 		$startDate = "";
 		$endDate = "";
 
@@ -186,7 +186,7 @@ class timespan {
 		//X_all_reports() methods to get the date range of al reports
 		$timeframe_stop = $this->end_all_reports();
 		$timeframe_start = $this->start_all_reports();
-		
+
 		//check and see which set of dates is greater, all reports or active_dates
 		if(!$timeframe_stop || $this->active_endDate > $timeframe_stop)
 		{
@@ -205,20 +205,20 @@ class timespan {
 			$startYear =  date('Y', $timeframe_start);
 			$endMonth =  date('n', $timeframe_stop);
 			$endYear = date('Y', $timeframe_stop);
-			
+
 			$active_startYear = date('Y', $this->active_startDate);
 			$active_startMonth = date('n', $this->active_startDate);
 			$active_endYear = date('Y', $this->active_endDate);
 			$active_endMonth = date('n', $this->active_endDate);
-			
+
 			for($years = $startYear; $years <= $endYear; $years++)
 			{
 				$startDate .= "<optgroup label=\"" . $years . "\">";
 				for ( $i=1; $i <= 12; $i++ ) {
-					
+
 					//calculate the working date
 					$startWorkingDate = mktime(0, 0, 0, $i, 1, $years);
-					
+
 					$startDate .= "<option value=\"" . $startWorkingDate. "\"";
 					if ( $active_startMonth && ( (int) $i == ( $active_startMonth - 0)) && ($years == $active_startYear) )
 					{
@@ -233,7 +233,7 @@ class timespan {
 				{
 					//calculate the working date
 					$endWorkingDate = mktime(23, 59, 59, $i+1, 0, $years);
-				
+
 					$endDate .= "<option value=\"" . $endWorkingDate . "\"";
 					// Focus on the end Month
 					if ( $active_endMonth && ( ( (int) $i == ( $active_endMonth + 0)) ) && ($years == $active_endYear))
@@ -244,7 +244,7 @@ class timespan {
 				}
 				$endDate .= "</optgroup>";
 			}
-			
+
 			$this->startDate = $startDate;
 			$this->endDate = $endDate;
 			Event::$data = $startDate;
@@ -261,7 +261,7 @@ class timespan {
 			***************************************************/
 			$timeframe_start = $timeframe_start - (86400 * 15); //gives us a 15 day margin at the start
 			$timeframe_stop = $timeframe_stop + (86400 *15); //gives us a 15 day margin at the end
-			
+
 			$start_lastMonth = date("F", $timeframe_start);
 			$end_lastMonth =  date("F", $timeframe_start+86399);
 			//now start making some changes to things
@@ -285,7 +285,7 @@ class timespan {
 				//echo "<br/> i = ".$i." startDate = ".date('M j Y', $timeframe_start);
 
 				$timeframe_stop = $timeframe_start+86399;
-				
+
 				//check to see if we need a new option group
 				if($end_lastMonth != date("F", $timeframe_stop))
 				{
@@ -293,17 +293,17 @@ class timespan {
 					$endDate .= "</optgroup>";
 					$endDate .= "<optgroup label=\"".date("F Y", $timeframe_stop)."\">";
 				}
-				
+
 				$endDate .= "<option value=\"".$timeframe_stop."\"";
-				
-				if ($i==$endDay) 
+
+				if ($i==$endDay)
 				{
 					$endDate .= " selected=\"selected\" ";
 				}
 
 				$endDate .= ">" . date('M j Y', $timeframe_stop) . "</option>";
 				$timeframe_start = $timeframe_start + 86400;
-				
+
 				//check to see if we need a new option group
 				if($start_lastMonth != date("F", $timeframe_start))
 				{
@@ -315,21 +315,21 @@ class timespan {
 			}
 			$startDate .= "</optgroup>";
 			$endDate .= "</optgroup>";
-			
+
 			$this->startDate = $startDate;
 			$this->endDate = $endDate;
 			Event::$data = $startDate;
 		}
 	} //end method _set_slider_start
-	
-	
+
+
 	/**
 	* Used to set the increments of the slider
 	* This should set the endDate variable
 	* all the processing was done in the above function
 	* but to set two seperate variables we need two seperate
 	* filters
-	*/ 
+	*/
 	public function _set_slider_end()
 	{
 			//if the interval_mode is set to 1, then just leave the interval at months
@@ -343,8 +343,8 @@ class timespan {
 			Event::$data = $this->endDate;
 		}
 	} //end method _set_slider_end
-	
-	
+
+
 	/**
 	* returns the start date when the mode is last N days
 	**/
@@ -352,13 +352,13 @@ class timespan {
 	{
 		//find out how many days ago we should go
 		$n_days = $this->settings->days_back;
-			
+
 		//get the time N days ago
 		$startDate = time() - ($n_days * 24 * 60 * 60);
 		return $startDate;
 	}
-	
-	
+
+
 	/**
 	* returns the start date when the mode is from date N to date M
 	**/
@@ -367,7 +367,7 @@ class timespan {
 		$startDate = strtotime($this->settings->start_date);
 		return $startDate;
 	}
-	
+
 	/**
 	* Return the start date when the mode is set to show all reports
 	**/
@@ -387,7 +387,7 @@ class timespan {
 			//from the start date because the timeline rounds up to th nearest month
 			if($this->settings->interval_mode == 1)
 			{
-				$startDate = strtotime($query_active->incident_date); //round down to the start of the month				
+				$startDate = strtotime($query_active->incident_date); //round down to the start of the month
 				$roundedDate = mktime(0, 0, 0, date("n", $startDate)-1, 1, date("Y", $startDate));
 				$startDate = $roundedDate;
 			}
@@ -411,8 +411,8 @@ class timespan {
 		$endDate = time();
 		return $endDate;
 	}
-	
-	
+
+
 	/**
 	* returns the end date when the mode is from date N to date M
 	**/
@@ -421,7 +421,7 @@ class timespan {
 		$endDate = strtotime($this->settings->end_date);
 		return $endDate;
 	}
-	
+
 	/**
 	* Return the end date when the mode is set to show all reports
 	**/
@@ -446,10 +446,10 @@ class timespan {
 			}
 			elseif($this->settings->interval_mode==2) //if it's a day just add more hours/minutes till midnight
 			{
-				$endDate = strtotime($query_active->incident_date); 
+				$endDate = strtotime($query_active->incident_date);
 				$roundedDate = mktime(23, 59, 59, date("n", $endDate), date("j", $endDate)+1, date("Y", $endDate));
 				$endDate = $roundedDate;
-			}		
+			}
 		}
 		return $endDate;
 	}
@@ -458,7 +458,7 @@ class timespan {
 	{
 		echo (Event::$data == "timespan") ? Kohana::lang('timespan.timespan') : "<a href=\"".url::site()."admin/settings/timespan\">".Kohana::lang('timespan.timespan')."</a>";
 	}
-	
+
 }//end class
 
 new timespan;
