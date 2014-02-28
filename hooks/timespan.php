@@ -188,11 +188,11 @@ class timespan {
 		$timeframe_start = $this->start_all_reports();
 		
 		//check and see which set of dates is greater, all reports or active_dates
-		if($this->active_endDate > $timeframe_stop)
+		if(!$timeframe_stop || $this->active_endDate > $timeframe_stop)
 		{
 			$timeframe_stop = $this->active_endDate;
 		}
-		if($this->active_startDate < $timeframe_start)
+		if(!$timeframe_start || $this->active_startDate < $timeframe_start)
 		{
 			$timeframe_start = $this->active_startDate;
 		}
@@ -220,7 +220,7 @@ class timespan {
 					$startWorkingDate = mktime(0, 0, 0, $i, 1, $years);
 					
 					$startDate .= "<option value=\"" . $startWorkingDate. "\"";
-					if ( $startMonth && ( (int) $i == ( $active_startMonth - 0)) && ($years == $active_startYear) )
+					if ( $active_startMonth && ( (int) $i == ( $active_startMonth - 0)) && ($years == $active_startYear) )
 					{
 						$startDate .= " selected=\"selected\" ";
 					}
@@ -236,7 +236,7 @@ class timespan {
 				
 					$endDate .= "<option value=\"" . $endWorkingDate . "\"";
 					// Focus on the end Month
-					if ( $endMonth && ( ( (int) $i == ( $active_endMonth + 0)) ) && ($years == $active_endYear))
+					if ( $active_endMonth && ( ( (int) $i == ( $active_endMonth + 0)) ) && ($years == $active_endYear))
 					{
 						$endDate .= " selected=\"selected\" ";
 					}
